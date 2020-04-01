@@ -28,7 +28,7 @@ function [shortDist,trace] = dijkstra(nodes,segments,start_ID,end_ID)
 %
 % Author: VARUN AGGARWAL
 % Date: 3/30/2020
-% Github: github.com/salazar-prime
+% Github: https://github.com/Salazar-Prime/Dijkstra/
 
 
 % create a distance table for minimum distance to a node
