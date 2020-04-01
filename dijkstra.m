@@ -20,9 +20,6 @@ function [shortDist,trace] = dijkstra(nodes,segments,start_ID,end_ID)
 %     to end node
 %
 % Helper Functions:
-%     UPDATE updates the value for a particular column and row ID in a
-%     table
-%     VALUE return the value corresponding to particular column and row ID
 %     DISTANCE return euclidean distance between two nodes
 %
 %
@@ -34,61 +31,57 @@ function [shortDist,trace] = dijkstra(nodes,segments,start_ID,end_ID)
 % create a distance table for minimum distance to a node
 total_nodes = length(nodes);
 dist = inf(total_nodes,1);
-nodeID = nodes(:,1);
-dist = table(nodeID, dist);
 
-% create a path table to store the most adjacent parent node for
+% create a path array to store the most adjacent parent node for
 % minimum distance
-path = table(nodeID, nodeID);
-path.Properties.VariableNames = {'nodeID', 'parent'};
-clear nodeID;
+path = nodes(:,1);
+
+% keeping track of visited nodes
+visited = zeros(total_nodes,1);
 
 % initialize start node distance to zero
-dist = update(dist, start_ID, 'dist', 0);
+dist(start_ID) = 0;
 
-% find distances for all nodes
-for i=1:total_nodes
-    dist = sortrows(dist, 2);
-    current_node = dist.nodeID(i);
+% find distances until end_ID is visited
+while visited(end_ID) == 0
+    % finding minimum distance out of not visited nodes
+    current_node = min(setdiff( find(dist == min(dist(~visited))) , find(visited) ));
+    visited(current_node) = 1; % mark current node as visited
 
     % neighbours of each node
     for neighbour=segments(segments(:,2)==current_node,3)'
-        previous_dist = value(dist, neighbour, 'dist');
-        current_dist = distance(nodes, current_node, neighbour) + value(dist, current_node, 'dist');
-        % check if new path distance is less than previous distance
-        if current_dist < previous_dist
-            dist = update(dist, neighbour, 'dist', current_dist);
-            path = update(path, neighbour, 'parent', current_node);
-        end
-    end
-end
+        
+        if visited(neighbour) ~= 1 % skip neighbours which have been visited already
+            
+            previous_dist = dist(neighbour);
+            current_dist = distance(nodes, current_node, neighbour) + dist(current_node);
+            
+            % check if new path distance is less than previous distance
+            if current_dist < previous_dist
+                dist(neighbour) = current_dist;
+                path(neighbour) = current_node;
+            end
+            
+        end % end if
+        
+    end % end for
+end % end while
 
 %% extract shortest path and its distance
 
 % distance
-shortDist = value(dist, end_ID, 'dist');
-
+shortDist = dist(end_ID);
 % backtrace path
 node = end_ID;
 trace = [node];
 while node ~= start_ID
-    node = value(path, node, 'parent');
+    node = path(node);
     trace = [trace, node];    
 end
 
 end % end function
 
-%% helper functions for table manipulation
-
-% to update table value 
-function table = update(table, ID, col, value)
-    eval(strcat('table.',col,'(table.nodeID == ID) = value;'));
-end
-
-% to fetch data corresponding to a nodeID from table 
-function dist = value(table, ID, col)
-    eval(strcat('dist = table.',col,'(table.nodeID==ID);'))
-end
+%% helper functions
 
 % calculate euclidean distance 
 function dist = distance(nodes, A, B)
