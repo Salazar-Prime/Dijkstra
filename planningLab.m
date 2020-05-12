@@ -50,7 +50,7 @@ starting = [floor(tempx),floor(tempy)];
 maze(starting(1),starting(2)) = 2;
 plot(starting(1)+0.5,starting(2)+0.5,'b*')
 
-save('maze.mat','maze')
+save('maze_v2.mat','maze')
 
 %% Graph Setup
 
@@ -64,6 +64,7 @@ close all
 
 load('maze.mat')
 % load('bigMaze.mat')
+% load('maze_v2.mat')
 
 %Now that we have our maze, we need to put it into a form that is solveable
 %for planners.  There are lots of ways to do this, but one way is to set up
@@ -135,6 +136,11 @@ for i=1:index_node-1
                 continue
             end
             
+            % skip diagonal
+            if abs(ii - x) + abs(jj - y) == 2
+                continue
+            end
+            
             % find segement
             if maze(ii,jj) ~= 1
                 node_ID = intersect(find(nodes(:,2) == ii), find(nodes(:,3) == jj));
@@ -144,6 +150,22 @@ for i=1:index_node-1
         end
     end
 end
+
+
+%% Dijkstra
+
+%Here is where you need to implement Dijstra's algorithm going from
+%startpoint to endpoint. You will want to use the graph that was generated
+%above to help solve the maze. The output of your algorithm should be
+%cartesian distance and a vector path [1 x k] from node to node.
+
+tic
+%YOUR CODE HERE
+[dist,path] = dijkstra(nodes, segments, start_ID, end_ID);
+% [dist,path] = dj(nodes, segments, start_ID);
+toc
+
+%% plotting and animation
 
 % Lets plot the nodes/segments
 figure(1)
@@ -158,22 +180,26 @@ plot(nodes(start_ID,2),nodes(start_ID,3),'.g', 'MarkerSize',20)
 % plot end
 plot(nodes(end_ID,2),nodes(end_ID,3),'.b', 'MarkerSize',20)
 
-%% Dijkstra
+title(sprintf('Distance %0.4f', dist))
 
-%Here is where you need to implement Dijstra's algorithm going from
-%startpoint to endpoint. You will want to use the graph that was generated
-%above to help solve the maze. The output of your algorithm should be
-%cartesian distance and a vector path [1 x k] from node to node.
+gif('myfile.gif','DelayTime', 1/5)
 
-tic
-%YOUR CODE HERE
-[dist,path] = dijkstra(nodes, segments, start_ID, end_ID);
-toc
+% video object
+% v = VideoWriter('trial_movie.avi');
+% v.FrameRate = 3;
+% open(v);
+% % set(gca,'Units','pixels','Position',[10 10 444 338])
+% F = getframe;
+% writeVideo(v,F);
 
 %Plot the path
 for ii = 1:length(path)-1
     plot(nodes(path(ii:ii+1),2),nodes(path(ii:ii+1),3),'r:','linewidth',4);
+    gif
+%     F = getframe;
+%     writeVideo(v,F);
 end
-title(sprintf('Distance %0.4f', dist))
 
+% % movie(F,1,1);
 
+% close(v);

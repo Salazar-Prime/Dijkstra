@@ -79,6 +79,8 @@ while node ~= start_ID
     trace = [trace, node];    
 end
 
+trace = flip(trace);
+
 end % end function
 
 %% helper functions
